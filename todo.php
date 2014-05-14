@@ -12,6 +12,7 @@
 
 // Create array to hold list of todo items
 $items = array();
+unset($items[0]);
 
 // The loop!
 do 
@@ -49,7 +50,7 @@ do
     }
 // Exit when input is (Q)uit
 } 
-while (($input != 'Q') || ($input !== 'q'));
+while (($input != 'Q') && ($input != 'q'));
 
 // Say Goodbye!
 echo "Goodbye!\n";
