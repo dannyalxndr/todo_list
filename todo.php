@@ -1,34 +1,35 @@
 <?php
 
-// this is my empty array for the list of items
 $items = array();
 
-
-/////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-//                     ** FUNCTIONS BELOW **                        
-
-
-// function to display the results of your items list
-function list_items($list)
+function list_items($list) 
 {
-    $result = '';
-
-    foreach ($list as $key => $value)
+    $place = '';
+    // Iterate through list items
+    foreach ($list as $key => $item) 
     {
-        $result .= "[" . ($key + 1) . "] {$value}\n";  
+        $newKey = $key + 1;
+        $place .= "[" . $newKey . "]" . " " . $item . PHP_EOL;
+    // Display each item and a newline
     }
-    return $result;
+    return $place;
 }
 
-// function that reads the input of your user
+// Get STDIN, strip whitespace and newlines, 
+// and convert to uppercase if $upper is true
 function get_input($upper = false) 
 {
-    $result = trim(fgets(STDIN));
-    return $upper ? strtoupper($result) : $result;
+    // Return filtered STDIN input
+    if($upper == TRUE) 
+    {
+        return strtoupper(trim(fgets(STDIN)));
+    } 
+    else 
+    {
+        return trim(fgets(STDIN));
+    }
 }
 
-// function for sorting your items menu how you'd like
 function sort_menu($items)
 {
     echo "(A)-Z, (Z)-A, (O)rder entered, (R)everse order entered: ";
@@ -38,10 +39,10 @@ function sort_menu($items)
     switch ($input) 
     {
         case 'A':
-            asort($items, SORT_NATURAL|SORT_FLAG_CASE);
+            sort($items, SORT_NATURAL|SORT_FLAG_CASE);
             break;
         case 'Z':
-            arsort($items, SORT_NATURAL|SORT_FLAG_CASE);
+            rsort($items, SORT_NATURAL|SORT_FLAG_CASE);
             break;
         case 'O':
             ksort($items, SORT_NATURAL|SORT_FLAG_CASE);
@@ -54,28 +55,40 @@ function sort_menu($items)
     return $items;   
 }
 
-// function that imports a file to the list
-function read_file()
+function read_file($filename) 
 {
-    echo "Enter the filename: ";
-    $filename = get_input();
-    $handle = fopen($filename, 'r');
-    $contents = trim(fread($handle, filesize($filename)));
-    return $contents;
+    $handle = fopen($filename, "r");
+    $contents = fread($handle, filesize($filename));
+    $contents_array = explode("\n", $contents);
     fclose($handle);
+    return $contents_array;
 }
 
+function save_file($filename, $data_to_save)
+{
+    $input = 'Y';
 
-//                   ^^^ FUNCTIONS ^^^
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+    if (file_exists($filename)) 
+    {
+        echo "This will overwrite the file. Are you sure? Y or N? ";
+        $input = get_input(TRUE);
+    }
 
-// the loop of input conditions
+    if ($input == 'Y') 
+    {
+        $handle = fopen($filename, 'w');
+        $contents = implode("\n", $data_to_save);
+        fwrite($handle, $contents);
+        fclose($handle);
+    } else {
+        echo "No changes were made.\n";
+    }
+}
 
 do 
 {
     echo list_items($items);
-    echo '(N)ew item, (R)emove item, (S)ort, (O)pen file, (Q)uit : ';
+    echo '(N)ew item, (R)emove item, (S)ort, (M)anage files, (Q)uit : ';
     $input = get_input(true);
     
     // to put in a new item
@@ -123,13 +136,31 @@ do
     {
         $items = sort_menu($items);
     }
+    elseif ($input == 'A')
+    {
+        save_file();
+        echo "Your file has been saved!\n";
+    }
     // option for opening a file
-    elseif ($input == 'O')
-    {      
-        $contents = read_file();
-        // explode the string into an array
-        $content_array = explode("\n", $contents);
-        $items = array_merge($items, $content_array);
+    elseif ($input == 'M') 
+    {
+
+        echo "(O)pen file - or - (S)ave file? ";
+        $input = get_input(TRUE);
+
+        echo "Enter filename: ";
+        $filename = get_input();
+
+        if($input == 'S')
+        {
+            save_file($filename, $items);
+            echo "\n.. saving file ..\n\n";
+        } elseif($input == 'O') 
+        {
+            $new_items = read_file($filename);
+            $items = array_merge($items, $new_items);
+            echo "\n.. file is merging ..\n\n";
+        }
     }
 } 
 // quitting option
@@ -137,10 +168,3 @@ while ($input != 'Q');
 
 echo "Goodbye!\n";
 exit(0);
-
-
-
-
-
-
-
